@@ -1,0 +1,12 @@
+[Compiler]
+SymbolDeprecated=0
+SymbolLibrary=0
+SymbolPlatform=0
+UnitLibrary=0
+UnitPlatform=0
+UnitDeprecated=0
+UnsafeType=0
+UnsafeCode=0
+UnsafeCast=0
+[Directories]
+SearchPath=..\..\..\Components
