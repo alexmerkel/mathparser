@@ -15,6 +15,8 @@ interface
 uses
   SysUtils, Types, FlexibleList, ValueTypes;
 
+{$I Integer.inc}
+
 const
   StringLength = 1024;
 
@@ -215,7 +217,7 @@ type
       3: (ScriptString: TScriptString);
   end;
 
-  TScriptMethod = function(var Index: Integer; const Header: PScriptHeader;
+  TScriptMethod = function(var Index: NativeInt; const Header: PScriptHeader;
     const ItemHeader: PItemHeader; const Item: PScriptItem;
     const Data: Pointer): Boolean of object;
 

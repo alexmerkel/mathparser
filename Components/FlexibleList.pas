@@ -14,7 +14,7 @@ unit FlexibleList;
 interface
 
 uses
-  {$IFDEF DELPHI_XE7}WinApi.Windows, {$ELSE}Windows, {$ENDIF}Classes, FastList;
+  {$IFDEF DELPHI_XE7}WinApi.Windows, {$ELSE}Windows, {$ENDIF}SyncObjs, Classes, FastList;
 
 type
   TListType = (ltList, ltFast);
@@ -106,7 +106,7 @@ begin
     end;
     try
       if Assigned(FList) then AList.Assign(FList);
-      Integer(FList) := InterlockedExchange(Integer(AList), Integer(FList));
+      FList := TInterlocked.Exchange(AList, FList);
       FListType := Value;
     finally
       AList.Free;

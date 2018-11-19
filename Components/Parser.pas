@@ -15,8 +15,10 @@ interface
 
 uses
   {$IFDEF DELPHI_XE7}WinApi.Windows, WinApi.Messages, {$ELSE}Windows, Messages,
-  {$ENDIF}SysUtils, Classes, Types, FlexibleList, Math, Notifier, ParseCache, ParseConsts,
+  {$ENDIF}SysUtils, SyncObjs, Classes, Types, FlexibleList, Math, Notifier, ParseCache, ParseConsts,
   ParseErrors, ParseMethod, ParseTypes, TextConsts, TextBuilder, ValueTypes;
+
+{$I Integer.inc}
 
 type
   TFunctionEvent = function(const AFunction: PFunction; const AType: PType; out Value: TValue;
@@ -126,7 +128,8 @@ type
 
   TParameterType = (ptParameter {TParameterKind = pkValue}, ptScript {TParameterKind = pkReference});
 
-  TNotify = record
+  TNotify = class(TObject)
+  public
     NotifyType: TNotifyType;
     Component: TComponent;
   end;
@@ -193,7 +196,7 @@ type
     procedure Notify; overload; virtual;
     function DoEvent(const Event: TFunctionEvent; const AFunction: PFunction; const AType: PType; out Value: TValue;
       const LValue, RValue: TValue; const PA: TParameterArray): Boolean; virtual;
-    procedure ReadParameterArray(var AIndex: Integer; out AParameterArray: TParameterArray; const ParameterType: TParameterType = ptParameter;
+    procedure ReadParameterArray(var AIndex: NativeInt; out AParameterArray: TParameterArray; const ParameterType: TParameterType = ptParameter;
       const AFake: Boolean = False); virtual; abstract;
     function GetTextData(const Text: string): TTextData; virtual;
     function CheckFHandle(const Handle: Integer): Boolean; virtual;
@@ -289,8 +292,8 @@ type
       const TypeMode: TRetrieveMode = rmUser): string; overload; virtual; abstract;
     function ScriptToString(const Script: TScript; const Delimiter: string; const ABracket: TBracket;
       const TypeMode: TRetrieveMode = rmUser): string; overload; virtual; abstract;
-    function Execute(const Index: Integer): PValue; virtual; abstract;
-    function ExecuteFunction(var Index: Integer; const ItemHeader: PItemHeader; const LValue: TValue;
+    function Execute(const Index: NativeInt): PValue; virtual; abstract;
+    function ExecuteFunction(var Index: NativeInt; const ItemHeader: PItemHeader; const LValue: TValue;
       const Fake: Boolean = False): TValue; virtual; abstract;
     function AsValue(const Text: string): TValue; virtual;
     function AsByte(const Text: string): Byte; virtual;
@@ -400,21 +403,21 @@ type
   protected
     function ParseMethod(var Text: string; const FromIndex, TillIndex: Integer;
       const Data: Pointer): TError; virtual;
-    function ExecuteMethod(var Index: Integer; const Header: PScriptHeader; const ItemHeader: PItemHeader;
+    function ExecuteMethod(var Index: NativeInt; const Header: PScriptHeader; const ItemHeader: PItemHeader;
       const Item: PScriptItem; const Data: Pointer): Boolean; virtual;
-    function ScriptArrayMethod(var AIndex: Integer; const Header: PScriptHeader;
+    function ScriptArrayMethod(var AIndex: NativeInt; const Header: PScriptHeader;
       const ItemHeader: PItemHeader; const Item: PScriptItem;
       const Data: Pointer): Boolean; virtual;
-    function ParameterArrayMethod(var AIndex: Integer; const Header: PScriptHeader;
+    function ParameterArrayMethod(var AIndex: NativeInt; const Header: PScriptHeader;
       const ItemHeader: PItemHeader; const Item: PScriptItem;
       const Data: Pointer): Boolean; virtual;
-    function OptimizationMethod(var Index: Integer; const Header: PScriptHeader;
+    function OptimizationMethod(var Index: NativeInt; const Header: PScriptHeader;
       const ItemHeader: PItemHeader; const Item: PScriptItem;
       const Data: Pointer): Boolean; virtual;
-    function ParameterOptimizationMethod(var Index: Integer; const Header: PScriptHeader;
+    function ParameterOptimizationMethod(var Index: NativeInt; const Header: PScriptHeader;
       const ItemHeader: PItemHeader; const Item: PScriptItem;
       const Data: Pointer): Boolean; virtual;
-    function DecompileMethod(var Index: Integer; const Header: PScriptHeader;
+    function DecompileMethod(var Index: NativeInt; const Header: PScriptHeader;
       const ItemHeader: PItemHeader; const Item: PScriptItem;
       const Data: Pointer): Boolean; virtual;
     function Order(const Coverage: TPriorityCoverage; var ItemArray: TTextItemArray; var SA: TScriptArray; var Idle: PFunction): Boolean; virtual;
@@ -424,11 +427,11 @@ type
     function InternalCompile(const Text: string; var SA: TScriptArray; const Parameter: Boolean; var Idle: PFunction; out Error: TError): TScript; overload; override;
     function InternalCompile(const Text: string; var SA: TScriptArray; const Parameter: Boolean; var Idle: PFunction): TScript; overload; override;
     procedure ExecuteInternalScript(Index: Integer); virtual;
-    procedure ReadParameterArray(var Index: Integer; out PA: TParameterArray; const ParameterType: TParameterType = ptParameter;
+    procedure ReadParameterArray(var Index: NativeInt; out PA: TParameterArray; const ParameterType: TParameterType = ptParameter;
       const Fake: Boolean = False); override;
     procedure InternalOptimize(const Index: Integer; out Script: TScript); override;
     function OptimizeParameterArray(Index: Integer; out Script: TScript): Boolean; virtual;
-    function Optimizable(var Index: Integer; const Number: Boolean; out Offset: Integer;
+    function Optimizable(var Index: NativeInt; const Number: Boolean; out Offset: Integer;
       out Parameter: Boolean; out Script: TScript): Boolean; virtual;
     function InternalDecompile(const Index: Integer; const Delimiter: string; const Parameter: Boolean;
       const ParameterBracket: TBracket; const TypeMode: TRetrieveMode): string; override;
@@ -447,10 +450,10 @@ type
     function ScriptToString(const Script: TScript; const Delimiter: string; const TypeMode: TRetrieveMode = rmUser): string; override;
     function ScriptToString(const Script: TScript; const Delimiter: string; const ABracket: TBracket; const TypeMode: TRetrieveMode = rmUser): string; override;
     function ScriptToString(const TypeMode: TRetrieveMode = rmUser): string; reintroduce; overload;
-    function Execute(const Index: Integer): PValue; overload; override;
+    function Execute(const Index: NativeInt): PValue; overload; override;
     function Execute(const Script: TScript): PValue; reintroduce; overload;
     function Execute: PValue; reintroduce; overload;
-    function ExecuteFunction(var Index: Integer; const ItemHeader: PItemHeader; const LValue: TValue; const Fake: Boolean = False): TValue; override;
+    function ExecuteFunction(var Index: NativeInt; const ItemHeader: PItemHeader; const LValue: TValue; const Fake: Boolean = False): TValue; override;
     // Connector = Addressee
     property Connector: TComponent read FConnector write FConnector;
     property ParseManager: TObject read FParseManager write FParseManager;
@@ -1844,7 +1847,7 @@ var
 begin
   if Assigned(FNotifyArray) then
   begin
-    Integer(ANotifyArray) := InterlockedExchange(Integer(FNotifyArray), Integer(ANotifyArray));
+    ANotifyArray[0] := TInterlocked.Exchange<TNotify>(FNotifyArray[0], ANotifyArray[0]);
     try
       for I := Low(ANotifyArray) to High(ANotifyArray) do
         Notify(ANotifyArray[I].NotifyType, ANotifyArray[I].Component);
@@ -1977,7 +1980,7 @@ begin
   FCached := True;
 end;
 
-function TParser.DecompileMethod(var Index: Integer; const Header: PScriptHeader;
+function TParser.DecompileMethod(var Index: NativeInt; const Header: PScriptHeader;
   const ItemHeader: PItemHeader; const Item: PScriptItem;
   const Data: Pointer): Boolean;
 var
@@ -2056,7 +2059,7 @@ begin
   inherited;
 end;
 
-function TParser.Execute(const Index: Integer): PValue;
+function TParser.Execute(const Index: NativeInt): PValue;
 var
   Header: PScriptHeader absolute Index;
   Value: TValue;
@@ -2079,7 +2082,7 @@ begin
   Result := Execute(FScript);
 end;
 
-function TParser.ExecuteFunction(var Index: Integer; const ItemHeader: PItemHeader; const LValue: TValue; const Fake: Boolean): TValue;
+function TParser.ExecuteFunction(var Index: NativeInt; const ItemHeader: PItemHeader; const LValue: TValue; const Fake: Boolean): TValue;
 var
   AFunction: PFunction;
   Parameter: PFunctionParameter;
@@ -2189,7 +2192,7 @@ begin
   end;
 end;
 
-function TParser.ExecuteMethod(var Index: Integer; const Header: PScriptHeader; const ItemHeader: PItemHeader;
+function TParser.ExecuteMethod(var Index: NativeInt; const Header: PScriptHeader; const ItemHeader: PItemHeader;
   const Item: PScriptItem; const Data: Pointer): Boolean;
 var
   Value: PValue absolute Data;
@@ -2730,7 +2733,7 @@ begin
   end;
 end;
 
-function TParser.Optimizable(var Index: Integer; const Number: Boolean; out Offset: Integer;
+function TParser.Optimizable(var Index: NativeInt; const Number: Boolean; out Offset: Integer;
   out Parameter: Boolean; out Script: TScript): Boolean;
 var
   AFunction: PFunction;
@@ -2775,11 +2778,12 @@ begin
   end;
 end;
 
-function TParser.OptimizationMethod(var Index: Integer; const Header: PScriptHeader; const ItemHeader: PItemHeader;
+function TParser.OptimizationMethod(var Index: NativeInt; const Header: PScriptHeader; const ItemHeader: PItemHeader;
   const Item: PScriptItem; const Data: Pointer): Boolean;
 var
   Start: Integer absolute ItemHeader;
-  I, J, Offset: Integer;
+  I, J: NativeInt;
+  Offset: Integer;
   AData: POptimizationData absolute Data;
   Parameter: Boolean;
   Script: TScript;
@@ -3054,7 +3058,7 @@ begin
   end;
 end;
 
-function TParser.ParameterArrayMethod(var AIndex: Integer; const Header: PScriptHeader;
+function TParser.ParameterArrayMethod(var AIndex: NativeInt; const Header: PScriptHeader;
   const ItemHeader: PItemHeader; const Item: PScriptItem;
   const Data: Pointer): Boolean;
 var
@@ -3105,12 +3109,13 @@ begin
   Result := True;
 end;
 
-function TParser.ParameterOptimizationMethod(var Index: Integer; const Header: PScriptHeader;
+function TParser.ParameterOptimizationMethod(var Index: NativeInt; const Header: PScriptHeader;
   const ItemHeader: PItemHeader; const Item: PScriptItem;
   const Data: Pointer): Boolean;
 var
   Start: Integer absolute ItemHeader;
-  I, J, Offset: Integer;
+  I, J: NativeInt;
+  Offset: Integer;
   AData: PParameterOptimizationData absolute Data;
   Parameter: Boolean;
   Script: TScript;
@@ -3239,7 +3244,7 @@ begin
   FillChar(Result, SizeOf(TError), 0);
 end;
 
-procedure TParser.ReadParameterArray(var Index: Integer; out PA: TParameterArray; const ParameterType: TParameterType;
+procedure TParser.ReadParameterArray(var Index: NativeInt; out PA: TParameterArray; const ParameterType: TParameterType;
   const Fake: Boolean);
 var
   Data: TParameterArrayData;
@@ -3251,7 +3256,7 @@ begin
   end;
 end;
 
-function TParser.ScriptArrayMethod(var AIndex: Integer; const Header: PScriptHeader;
+function TParser.ScriptArrayMethod(var AIndex: NativeInt; const Header: PScriptHeader;
   const ItemHeader: PItemHeader; const Item: PScriptItem;
   const Data: Pointer): Boolean;
 var

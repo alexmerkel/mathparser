@@ -14,7 +14,7 @@ unit Thread;
 interface
 
 uses
-  {$IFDEF DELPHI_XE7}WinApi.Windows, {$ELSE}Windows, {$ENDIF}SysUtils, Classes, Forms;
+  {$IFDEF DELPHI_XE7}WinApi.Windows, {$ELSE}Windows, {$ENDIF}SysUtils, SyncObjs, Classes, Forms;
 
 const
   DefaultSuspended = False;
@@ -112,7 +112,7 @@ begin
   ASyncList := nil;
   EnterCriticalSection(ThreadLock);
   try
-    Integer(ASyncList) := InterlockedExchange(Integer(SyncList), Integer(ASyncList));
+    ASyncList := TInterlocked.Exchange(SyncList, ASyncList);
     try
       Result := Assigned(ASyncList) and (ASyncList.Count > 0);
       if Result then

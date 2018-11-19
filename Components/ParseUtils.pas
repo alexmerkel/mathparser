@@ -17,6 +17,8 @@ uses
   {$IFDEF DELPHI_XE7}WinApi.Windows, {$ELSE}Windows, {$ENDIF}SysUtils, Types, ParseErrors,
   Parser, ParseTypes, TextConsts, ValueTypes, ValueUtils;
 
+{$I Integer.inc}
+
 type
   TLockType = (ltBracket, ltChar);
   TLock = record
@@ -36,9 +38,9 @@ type
 
   TParseHelper = class
   protected
-    function FindMethod(var Index: Integer; const Header: PScriptHeader; const ItemHeader: PItemHeader;
+    function FindMethod(var Index: NativeInt; const Header: PScriptHeader; const ItemHeader: PItemHeader;
       const Item: PScriptItem; const Data: Pointer): Boolean; virtual;
-    function FunctionArrayMethod(var Index: Integer; const Header: PScriptHeader; const ItemHeader: PItemHeader;
+    function FunctionArrayMethod(var Index: NativeInt; const Header: PScriptHeader; const ItemHeader: PItemHeader;
       const Item: PScriptItem; const Data: Pointer): Boolean; virtual;
   public
     function FindItem(const Script: TScript; const ACode, AFromIndex: Integer): PScriptItem;
@@ -49,7 +51,7 @@ type
 function MakeHandleArray(const HandleArray: array of Integer): TIntegerDynArray;
 procedure SortHandleArray(var HandleArray: TIntegerDynArray);
 
-function ParseScript(Index: Integer; const Method: TScriptMethod; const Data: Pointer): Boolean;
+function ParseScript(Index: NativeInt; const Method: TScriptMethod; const Data: Pointer): Boolean;
 procedure BuildScript(const Parser: TCustomParser; const ItemArray: TScriptArray; out Script: TScript;
   const Optimize: Boolean; Number: PNumber = nil);
 
@@ -61,7 +63,7 @@ function RestoreText(const Parser: TCustomParser; const Text: string; const SA: 
 function RestoreText(const Parser: TCustomParser; const TextArray: TTextItemArray; const SA: TScriptArray;
   const Parameter: Boolean = False): string; overload;
 
-procedure Read(const Parser: TCustomParser; var Index: Integer; out AFunction: PFunction);
+procedure Read(const Parser: TCustomParser; var Index: NativeInt; out AFunction: PFunction);
 function ParameterToScript(const Script: TScript; const THandle: Integer = -1): TScript;
 function GetScriptFromValue(const Parser: TCustomParser; Value: TValue; const TypeFlag: Boolean; const ScriptType: TScriptType): TScript; overload;
 function GetScriptFromValue(const Parser: TCustomParser; const Number: TNumber; const ScriptType: TScriptType): TScript; overload;
@@ -143,7 +145,7 @@ function InQuote(const Text: string): Boolean;
 
 function MakeTemplate(const Parser: TCustomParser; const Data: PFunctionData; const Text: string; const ValueArray: PValueArray;
   const NumberTemplate: string = Inquiry): string;
-function WriteValue(Index: Integer; var ValueIndex: Integer; const ValueArray: TValueArray;
+function WriteValue(Index: NativeInt; var ValueIndex: Integer; const ValueArray: TValueArray;
   const ScriptType: TScriptType): Boolean;
 
 function Add(var Script: TScript; const Value: Smallint): Integer; overload;
@@ -226,10 +228,10 @@ begin
     FromIndex := AFromIndex;
     Item := @Result;
   end;
-  ParseScript(Integer(Script), FindMethod, @FindData);
+  ParseScript(NativeInt(Script), FindMethod, @FindData);
 end;
 
-function TParseHelper.FindMethod(var Index: Integer; const Header: PScriptHeader; const ItemHeader: PItemHeader;
+function TParseHelper.FindMethod(var Index: NativeInt; const Header: PScriptHeader; const ItemHeader: PItemHeader;
   const Item: PScriptItem; const Data: Pointer): Boolean;
 var
   FindData: ^TFindData absolute Data;
@@ -255,7 +257,7 @@ begin
   else FindData.Item^ := Item;
 end;
 
-function TParseHelper.FunctionArrayMethod(var Index: Integer; const Header: PScriptHeader; const ItemHeader: PItemHeader;
+function TParseHelper.FunctionArrayMethod(var Index: NativeInt; const Header: PScriptHeader; const ItemHeader: PItemHeader;
   const Item: PScriptItem; const Data: Pointer): Boolean;
 var
   FArray: ^TIntegerDynArray absolute Data;
@@ -334,9 +336,9 @@ begin
   QSort(HandleArray, Low(HandleArray), High(HandleArray), HandleCompare, HandleExchange);
 end;
 
-function ParseScript(Index: Integer; const Method: TScriptMethod; const Data: Pointer): Boolean;
+function ParseScript(Index: NativeInt; const Method: TScriptMethod; const Data: Pointer): Boolean;
 var
-  I, J, K: Integer;
+  I, J, K: NativeInt;
   Header: PScriptHeader absolute I;
   ItemHeader: PItemHeader absolute J;
   Item: Pointer absolute K;
@@ -531,7 +533,7 @@ begin
   end;
 end;
 
-procedure Read(const Parser: TCustomParser; var Index: Integer; out AFunction: PFunction);
+procedure Read(const Parser: TCustomParser; var Index: NativeInt; out AFunction: PFunction);
 var
   Item: PScriptItem absolute Index;
 begin
@@ -611,7 +613,7 @@ end;
 
 function GetParameter(const Parser: TCustomParser; const Parameter: TParameter): TParameter;
 var
-  I, J: Integer;
+  I, J: NativeInt;
   Item: PScriptItem absolute I;
   ItemHeader: PItemHeader;
 begin
@@ -1686,10 +1688,10 @@ begin
   end;
 end;
 
-function WriteValue(Index: Integer; var ValueIndex: Integer; const ValueArray: TValueArray;
+function WriteValue(Index: NativeInt; var ValueIndex: Integer; const ValueArray: TValueArray;
   const ScriptType: TScriptType): Boolean;
 var
-  I, J: Integer;
+  I, J: NativeInt;
   Header: PScriptHeader absolute I;
   ItemHeader: PItemHeader absolute J;
   Item: PScriptItem absolute Index;
