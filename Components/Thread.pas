@@ -112,7 +112,11 @@ begin
   ASyncList := nil;
   EnterCriticalSection(ThreadLock);
   try
-    ASyncList := TInterlocked.Exchange(SyncList, ASyncList);
+    {$IFDEF DELPHI_7}
+      ASyncList := InterlockedCompareExchange(Pointer(SyncList),Pointer(ASyncList),Pointer(SyncList));
+    {$ELSE}
+      ASyncList := TInterlocked.Exchange(SyncList, ASyncList);
+    {$ENDIF}
     try
       Result := Assigned(ASyncList) and (ASyncList.Count > 0);
       if Result then
