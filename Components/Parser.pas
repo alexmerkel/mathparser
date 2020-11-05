@@ -1847,7 +1847,11 @@ var
 begin
   if Assigned(FNotifyArray) then
   begin
-    ANotifyArray[0] := TInterlocked.Exchange<TNotify>(FNotifyArray[0], ANotifyArray[0]);
+    {$IFDEF DELPHI_7}
+      ANotifyArray[0] := InterlockedCompareExchange(Pointer(FNotifyArray[0]),Pointer(ANotifyArray[0]),Pointer(FNotifyArray[0]));
+    {$ELSE}
+      ANotifyArray[0] := TInterlocked.Exchange<TNotify>(FNotifyArray[0], ANotifyArray[0]);
+    {$ENDIF}
     try
       for I := Low(ANotifyArray) to High(ANotifyArray) do
         Notify(ANotifyArray[I].NotifyType, ANotifyArray[I].Component);
@@ -2330,8 +2334,8 @@ var
   var
     UserType: PType;
   begin
-    // AItem.THandle - пользовательский тип текущего элемента, IHType - текущий тип TItemHeader (по умолчанию - FDefaultValueType)
-    // ItemType - тип текущего элемента, например, в случае если текущий элемент - функция, ItemType = TFunction.ReturnType
+    // AItem.THandle - ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«ГјГ±ГЄГЁГ© ГІГЁГЇ ГІГҐГЄГіГ№ГҐГЈГ® ГЅГ«ГҐГ¬ГҐГ­ГІГ , IHType - ГІГҐГЄГіГ№ГЁГ© ГІГЁГЇ TItemHeader (ГЇГ® ГіГ¬Г®Г«Г·Г Г­ГЁГѕ - FDefaultValueType)
+    // ItemType - ГІГЁГЇ ГІГҐГЄГіГ№ГҐГЈГ® ГЅГ«ГҐГ¬ГҐГ­ГІГ , Г­Г ГЇГ°ГЁГ¬ГҐГ°, Гў Г±Г«ГіГ·Г ГҐ ГҐГ±Г«ГЁ ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ - ГґГіГ­ГЄГ¶ГЁГї, ItemType = TFunction.ReturnType
     if ItemType <> vtUnknown then
     begin
       if not GetType(AItem.THandle, UserType) then UserType := nil;
@@ -2426,7 +2430,7 @@ begin
         for I := Low(AItemArray) to High(AItemArray) do
         begin
           AItem := @AItemArray[I];
-          // Знак параметра не важен
+          // Г‡Г­Г ГЄ ГЇГ Г°Г Г¬ГҐГІГ°Г  Г­ГҐ ГўГ Г¦ГҐГ­
           if Parameter then
           begin
             TrimPOperator(AItem.Text);
@@ -2458,8 +2462,8 @@ begin
               FillChar(Syntax, SizeOf(TSyntax), 0);
               Syntax.PriorHandle := -1;
               Data := TextData[AItem.Text];
-              // Если у параметра функции указан тип то такой параметр рассматривается как вложенное выражение, соответственно параметр
-              // (AItem.Text) может содержать или число без типа или функцию без типа или строку или вложенное выражение
+              // Г…Г±Г«ГЁ Гі ГЇГ Г°Г Г¬ГҐГІГ°Г  ГґГіГ­ГЄГ¶ГЁГЁ ГіГЄГ Г§Г Г­ ГІГЁГЇ ГІГ® ГІГ ГЄГ®Г© ГЇГ Г°Г Г¬ГҐГІГ° Г°Г Г±Г±Г¬Г ГІГ°ГЁГўГ ГҐГІГ±Гї ГЄГ ГЄ ГўГ«Г®Г¦ГҐГ­Г­Г®ГҐ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ, Г±Г®Г®ГІГўГҐГІГ±ГІГўГҐГ­Г­Г® ГЇГ Г°Г Г¬ГҐГІГ°
+              // (AItem.Text) Г¬Г®Г¦ГҐГІ Г±Г®Г¤ГҐГ°Г¦Г ГІГј ГЁГ«ГЁ Г·ГЁГ±Г«Г® ГЎГҐГ§ ГІГЁГЇГ  ГЁГ«ГЁ ГґГіГ­ГЄГ¶ГЁГѕ ГЎГҐГ§ ГІГЁГЇГ  ГЁГ«ГЁ Г±ГІГ°Г®ГЄГі ГЁГ«ГЁ ГўГ«Г®Г¦ГҐГ­Г­Г®ГҐ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ
               if Data.TextType = ttNumber then Write(icNumber)
               else begin
                 if AItem.Text = '' then
@@ -2467,8 +2471,8 @@ begin
                   Error := MakeError(etTextError, Format(TextError, [AText]));
                   Exit;
                 end;
-                // Если Parameter = True, выражение разделяется по FPData, любой TTextItem.FHandle связан с "чужой" PFunctionData,
-                // PTypeData в разделении выражения не участвует
+                // Г…Г±Г«ГЁ Parameter = True, ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ Г°Г Г§Г¤ГҐГ«ГїГҐГІГ±Гї ГЇГ® FPData, Г«ГѕГЎГ®Г© TTextItem.FHandle Г±ГўГїГ§Г Г­ Г± "Г·ГіГ¦Г®Г©" PFunctionData,
+                // PTypeData Гў Г°Г Г§Г¤ГҐГ«ГҐГ­ГЁГЁ ГўГ»Г°Г Г¦ГҐГ­ГЁГї Г­ГҐ ГіГ·Г Г±ГІГўГіГҐГІ
                 if Parameter then
                 begin
                   AItem.Text := SetSign(AItem.Text);
