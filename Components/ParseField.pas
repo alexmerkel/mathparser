@@ -9,6 +9,7 @@
 unit ParseField;
 
 {$B-}
+{$I Directives.inc}
 
 interface
 
@@ -204,8 +205,12 @@ begin
                       ZeroMemory(Item, SizeOf(TItem));
                       Item.Field := Field;
                       S := MakeFunctionName(ADataSet, Item.Field);
-                      FCalculator.Parser.AddFunction(S, Item.FunctionHandle, fkHandle, MakeFunctionMethod(False, False, 0), False, vtDouble);
-                      FList.List.AddObject(S, PAnsiChar(Item));
+                      FCalculator.Parser.AddFunction(S, Item.FunctionHandle, fkHandle, MakeFunctionMethod(False, False, 0), False, vtDouble);                                         
+                      {$IFDEF DELPHI_7}
+                        FList.List.AddObject(S, TObject(Item));
+                      {$ELSE}
+                        FList.List.AddObject(S, PAnsiChar(Item));
+                      {$ENDIF}                      
                       Item := nil;
                     except
                       Dispose(Item);
