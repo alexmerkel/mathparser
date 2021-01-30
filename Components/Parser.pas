@@ -1847,7 +1847,7 @@ var
 begin
   if Assigned(FNotifyArray) then
   begin
-    {$IFDEF DELPHI_7}
+    {$IFDEF VER150}
       ANotifyArray[0] := InterlockedCompareExchange(Pointer(FNotifyArray[0]),Pointer(ANotifyArray[0]),Pointer(FNotifyArray[0]));
     {$ELSE}
       ANotifyArray[0] := TInterlocked.Exchange<TNotify>(FNotifyArray[0], ANotifyArray[0]);
