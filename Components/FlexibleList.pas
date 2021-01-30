@@ -106,7 +106,7 @@ begin
     end;
     try
       if Assigned(FList) then AList.Assign(FList);
-      {$IFDEF DELPHI_7}
+      {$IFDEF VER150}
         FList := InterlockedCompareExchange(Pointer(AList),Pointer(FList),Pointer(AList));
       {$ELSE}
         FList := TInterlocked.Exchange(AList, FList);
