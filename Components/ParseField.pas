@@ -206,7 +206,7 @@ begin
                       Item.Field := Field;
                       S := MakeFunctionName(ADataSet, Item.Field);
                       FCalculator.Parser.AddFunction(S, Item.FunctionHandle, fkHandle, MakeFunctionMethod(False, False, 0), False, vtDouble);                                         
-                      {$IFDEF DELPHI_7}
+                      {$IFDEF VER150}
                         FList.List.AddObject(S, TObject(Item));
                       {$ELSE}
                         FList.List.AddObject(S, PAnsiChar(Item));
