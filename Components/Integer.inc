@@ -1,6 +1,6 @@
 {$B-}
 {$I Directives.inc}
-{$IFDEF DELPHI_7}
+{$IFDEF VER150}
 type
   NativeInt = Integer;
 {$ELSE}
