@@ -106,7 +106,11 @@ begin
     end;
     try
       if Assigned(FList) then AList.Assign(FList);
-      FList := TInterlocked.Exchange(AList, FList);
+      {$IFDEF VER150}
+        FList := InterlockedCompareExchange(Pointer(AList),Pointer(FList),Pointer(AList));
+      {$ELSE}
+        FList := TInterlocked.Exchange(AList, FList);
+      {$ENDIF}
       FListType := Value;
     finally
       AList.Free;
